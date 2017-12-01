@@ -13,7 +13,7 @@
 			/>
 		</receiver>
 
-		<pipeline firstPipe="CreateBuildInfo">
+		<pipeline firstPipe="validateXML">
 
 			<exits>
 				<exit path="OK" state="success" code="200" />
@@ -22,11 +22,10 @@
 
 			<pipe 
 				name="validateXML" 
-				className="nl.nn.adapterframework.pipes.XmlValidator"
-				storeResultInSessionKey="OriginalXML" 
-				schema="ReloadPost/xsd/input.xsd"
-				root="configuration"
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
 			>
+				<param name="OriginalXML"/>
+				
 				<forward name="failure" path="ServerError" />
 				<forward name="success" path="CreateBuildInfo" />
 			</pipe>
@@ -36,7 +35,7 @@
 				className="nl.nn.adapterframework.pipes.XsltPipe" 
 				styleSheetName="ReloadPost/xsl/WriteBuildInfo.xsl" 
 				xslt2="true"
-				getInputFromSessionKey="OriginalXML"
+				getInputFromFixedValue="&lt;OriginalXML/&gt;"
 				storeResultInSessionKey="buildInfo"
 			>
   				<forward name="exception" path="ServerError"/>
@@ -61,7 +60,7 @@
 				preserveInput="true"
 				getInputFromSessionKey="OriginalXML"
 			>
-				<param name="filename" value="configurations.xml"/>
+				<param name="filename" value="Ibis4Student/Configuration.xml"/>
 				
 				<forward name="exception" path="ServerError" />
 				<forward name="success" path="WriteBuildInfoToZip" />
@@ -74,7 +73,7 @@
 				preserveInput="true"
 				getInputFromSessionKey="buildInfo"
 			>
-				<param name="filename" value="BuildInfo_SC.properties"/>
+				<param name="filename" value="Ibis4Student/BuildInfo_SC.properties"/>
 				
 				<forward name="exception" path="ServerError" />
 				<forward name="success" path="CloseZipStream" />
@@ -105,14 +104,15 @@
 			<pipe 
 				name="SaveZip" 
 				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
-				getInputFromFixedValue="string"
+				getInputFromFixedValue="dummy"
 			>
   				<sender 
 	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
 	  				jmsRealm="jdbc" 
-	  				query="INSERT INTO IBISCONFIG (NAME, VERSION, FILENAME, CONFIG, CRE_TYDST, ACTIVECONFIG, AUTORELOAD) VALUES ('Test', '1','configurations.xml', ? , now(),  true, true)"
+	  				query="INSERT INTO IBISCONFIG (NAME, VERSION, FILENAME, CONFIG, CRE_TYDST, ACTIVECONFIG, AUTORELOAD) 
+	  				VALUES ('Ibis4Student', '1','config.zip', ? , now(),  true, true)"
   				>
-   					 <param name="zip" type="inputstream" sessionKey="stream"/>
+   					<param name="zip" type="inputstream" sessionKey="stream"/>
   				</sender>
   				
   				<forward name="success" path="ReloadConfiguration"/>
