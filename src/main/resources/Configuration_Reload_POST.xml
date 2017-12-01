@@ -1,0 +1,141 @@
+<ibis>
+	<adapter name="ReloadPost" description="POST Endpoint to reload adapter configurations">
+
+		<receiver 
+			name="PostConfigurations"
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="configurations/{fileName}" 
+				method="POST" 
+				consumes="XML" 
+			/>
+		</receiver>
+
+		<pipeline firstPipe="validateXML">
+
+			<exits>
+				<exit path="OK" state="success" code="200" />
+				<exit path="ServerError" state="error" code="500" />
+			</exits>
+
+			<pipe 
+				name="validateXML" 
+				className="nl.nn.adapterframework.pipes.XmlValidator"
+				storeResultInSessionKey="OriginalXML" 
+				schema="ReloadPost/xsd/input.xsd"
+				root="configuration"
+			>
+				<forward name="failure" path="ServerError" />
+				<forward name="success" path="CreateBuildInfo" />
+			</pipe>
+			
+			<pipe 
+				name="CreateBuildInfo" 
+				className="nl.nn.adapterframework.pipes.XsltPipe" 
+				styleSheetName="ReloadPost/xsl/WriteBuildInfo.xsl" 
+				xslt2="true"
+				getInputFromSessionKey="OriginalXML"
+				storeResultInSessionKey="buildInfo"
+			>
+  				<forward name="exception" path="ServerError"/>
+  				<forward name="success" path="CreateZip"/>
+			</pipe>
+									
+			<pipe
+				name="CreateZip"
+				className="nl.nn.adapterframework.compression.ZipWriterPipe"
+				getInputFromFixedValue="${directory}/config.zip"
+				action="open"
+			>
+				
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="WriteConfigToZip" />
+			</pipe>
+			
+			<pipe
+				name="WriteConfigToZip"
+				className="nl.nn.adapterframework.compression.ZipWriterPipe"
+				action="write"
+				preserveInput="true"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<param name="filename" value="configurations.xml"/>
+				
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="WriteBuildInfoToZip" />
+			</pipe>
+			
+			<pipe
+				name="WriteBuildInfoToZip"
+				className="nl.nn.adapterframework.compression.ZipWriterPipe"
+				action="write"
+				preserveInput="true"
+				getInputFromSessionKey="buildInfo"
+			>
+				<param name="filename" value="BuildInfo_SC.properties"/>
+				
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="CloseZipStream" />
+			</pipe>
+			
+		    <pipe
+                name="CloseZipStream"
+                className="nl.nn.adapterframework.compression.ZipWriterPipe"
+                action="close"
+               >
+               
+                <forward name="success" path="OpenZipStream"/>
+			</pipe>
+			
+			<pipe 
+				name="OpenZipStream"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				storeResultInSessionKey="stream"
+			>
+				<sender 
+					className="nl.nn.adapterframework.senders.FileSender"
+					actions="read"
+					outputType="stream"
+					fileName="${directory}/config.zip"
+				/>
+				
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="SaveZip" />
+			</pipe>
+			
+			<pipe 
+				name="SaveZip" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+  				<sender 
+	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
+	  				jmsRealm="jdbc" 
+	  				queryType="updateBlob"
+	  				query="INSERT INTO IBISCONFIG (NAME, VERSION, FILENAME, CONFIG, CRE_TYDST, ACTIVECONFIG, AUTORELOAD) VALUES ('Test', '1','configurations.xml', ? , now(),  true, true)"
+  				>
+   					 <param name="zip" type="inputstream" sessionKey="stream"/>
+  				</sender>
+  				
+  				<forward name="success" path="ReloadConfiguration"/>
+			</pipe>
+		
+			<pipe
+				name="ReloadConfiguration"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.senders.ReloadSender"
+					forceReload="true"
+				>
+					<param name="configName" value="Ibis4Education"/>
+				</sender>
+				
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="OK" />
+			</pipe>
+			
+		</pipeline>
+	</adapter>
+</ibis>

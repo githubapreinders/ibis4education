@@ -1,0 +1,41 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="configuration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="adapter">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="pipeline">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="exits">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="exit" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:string" name="path" use="optional"/>
+                                  <xs:attribute type="xs:string" name="state" use="optional"/>
+                                  <xs:attribute type="xs:short" name="code" use="optional"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element type="xs:string" name="pipe"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="firstPipe"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="name"/>
+            <xs:attribute type="xs:string" name="description"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

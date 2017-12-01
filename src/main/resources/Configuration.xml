@@ -1,12 +1,10 @@
 <!DOCTYPE configuration [
-	<!ENTITY HelloWorld SYSTEM "ConfigurationHelloWorld.xml">
-	<!ENTITY HelloWorlds SYSTEM "ConfigurationHelloWorlds.xml">
+	<!ENTITY Reload_POST SYSTEM "Configuration_Reload_POST.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
 		<jmsRealm realmName="jdbc" datasourceName="jdbc/${instance.name.lc}"/>
 		<!-- jmsRealm realmName="qcf" queueConnectionFactoryName="jms/qcf"/ -->
 	</jmsRealms>
-	&HelloWorld;
-	&HelloWorlds;
+	&Reload_POST;
 </configuration>
