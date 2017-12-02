@@ -7,7 +7,7 @@
 		>
 			<listener 
 				className="nl.nn.adapterframework.http.rest.ApiListener"
-				uriPattern="configurations/{fileName}" 
+				uriPattern="configurations/{configName}/{timestamp}/{version}" 
 				method="POST" 
 				consumes="XML" 
 			/>
@@ -33,11 +33,15 @@
 			<pipe 
 				name="CreateBuildInfo" 
 				className="nl.nn.adapterframework.pipes.XsltPipe" 
-				styleSheetName="ReloadPost/xsl/WriteBuildInfo.xsl" 
+				styleSheetName="Configs_POST/xsl/WriteBuildInfo.xsl" 
 				xslt2="true"
 				getInputFromFixedValue="&lt;OriginalXML/&gt;"
 				storeResultInSessionKey="buildInfo"
 			>
+				<param name="timestamp" sessionKey="timestamp"/>
+				<param name="version" 	sessionKey="version"/>
+				<param name="user" 		sessionKey="configName"/>
+				
   				<forward name="exception" path="ServerError"/>
   				<forward name="success" path="CreateZip"/>
 			</pipe>
@@ -50,6 +54,16 @@
 			>
 				
 				<forward name="exception" path="ServerError" />
+				<forward name="success" path="CreateConfig" />
+			</pipe>
+			
+			<pipe 
+				name="CreateConfig" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
+			>
+				<param name="config" sessionKey="OriginalXML" xpathExpression="request/configuration"/>
+				
+				<forward name="failure" path="ServerError" />
 				<forward name="success" path="WriteConfigToZip" />
 			</pipe>
 			
@@ -92,17 +106,35 @@
 				name="OpenZipStream"
 				className="nl.nn.adapterframework.pipes.FilePipe"
 				storeResultInSessionKey="stream"
-				actions="read"
+				actions="read_delete"
 				outputType="stream"
 				fileName="${directory}/config.zip"
 			>
 				
 				<forward name="exception" path="ServerError" />
-				<forward name="success" path="SaveZip" />
+				<forward name="success" path="DeactivatePreviousConfig" />
 			</pipe>
 			
 			<pipe 
-				name="SaveZip" 
+				name="DeactivatePreviousConfig" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromFixedValue="dummy"
+			>
+  				<sender 
+	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
+	  				jmsRealm="jdbc" 
+	  				query="UPDATE IBISCONFIG 
+	  				SET ACTIVECONFIG = FALSE, AUTORELOAD = FALSE 
+	  				WHERE NAME = ?"
+  				>
+  					<param name="configName" sessionKey="configName"/>
+  				</sender>
+  				
+  				<forward name="success" path="RegisterConfig"/>
+			</pipe>
+			
+			<pipe 
+				name="RegisterConfig" 
 				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
 				getInputFromFixedValue="dummy"
 			>
@@ -110,9 +142,11 @@
 	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
 	  				jmsRealm="jdbc" 
 	  				query="INSERT INTO IBISCONFIG (NAME, VERSION, FILENAME, CONFIG, CRE_TYDST, ACTIVECONFIG, AUTORELOAD) 
-	  				VALUES ('Ibis4Student', '1','config.zip', ? , now(),  true, true)"
+	  				VALUES (?, ? ,'config.zip', ? , now(),  true, true)"
   				>
-   					<param name="zip" type="inputstream" sessionKey="stream"/>
+  					<param name="configName" 	sessionKey="configName"/>
+  					<param name="version" 		sessionKey="version" 	type="integer"/>
+   					<param name="zip" 			sessionKey="stream"		type="inputstream" 		/>
   				</sender>
   				
   				<forward name="success" path="ReloadConfiguration"/>
@@ -126,7 +160,7 @@
 					className="nl.nn.adapterframework.senders.ReloadSender"
 					forceReload="true"
 				>
-					<param name="name" value="Ibis4Education"/>
+					<param name="name" sessionKey="configName"/>
 				</sender>
 				
 				<forward name="exception" path="ServerError" />

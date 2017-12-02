@@ -1,10 +1,10 @@
 <!DOCTYPE configuration [
-	<!ENTITY Reload_POST SYSTEM "Configuration_Reload_POST.xml">
+	<!ENTITY Configs_POST SYSTEM "Configuration_Configs_POST.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
 		<jmsRealm realmName="jdbc" datasourceName="jdbc/${instance.name.lc}"/>
 		<!-- jmsRealm realmName="qcf" queueConnectionFactoryName="jms/qcf"/ -->
 	</jmsRealms>
-	&Reload_POST;
+	&Configs_POST;
 </configuration>
