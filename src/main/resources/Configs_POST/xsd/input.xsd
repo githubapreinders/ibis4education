@@ -1,23 +1,212 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="configuration">
+  <xs:element name="root">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="adapter">
           <xs:complexType>
-            <xs:sequence>
-              <xs:element name="pipeline">
+            <xs:choice maxOccurs="unbounded" minOccurs="0">
+              <xs:element name="jmsRealms">
+                <xs:annotation>
+                  <xs:documentation>jmsRealm realmName="qcf" queueConnectionFactoryName="jms/qcf"/</xs:documentation>
+                </xs:annotation>
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="exits">
+                    <xs:element name="jmsRealm">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute type="xs:string" name="datasourceName" use="optional"/>
+                            <xs:attribute type="xs:string" name="realmName" use="optional"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="module">
+                <xs:annotation>
+                  <xs:documentation>include configuration for managing the database  include configuration for reloading configurations  include configuration for collection of statistics, flexible monitoring, cleaning up the database and fxf files, and recover adapters</xs:documentation>
+                </xs:annotation>
+                <xs:complexType mixed="true">
+                  <xs:sequence>
+                    <xs:element name="adapter" minOccurs="0">
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element name="exit" maxOccurs="unbounded" minOccurs="0">
+                          <xs:element name="errorMessageFormatter" minOccurs="0">
                             <xs:complexType>
                               <xs:simpleContent>
                                 <xs:extension base="xs:string">
-                                  <xs:attribute type="xs:string" name="path" use="optional"/>
-                                  <xs:attribute type="xs:string" name="state" use="optional"/>
-                                  <xs:attribute type="xs:short" name="code" use="optional"/>
+                                  <xs:attribute type="xs:string" name="className"/>
+                                  <xs:attribute type="xs:string" name="fileName"/>
+                                  <xs:attribute type="xs:string" name="replaceFrom"/>
+                                  <xs:attribute type="xs:string" name="replaceTo"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="receiver" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="listener">
+                                  <xs:complexType>
+                                    <xs:simpleContent>
+                                      <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="className" use="optional"/>
+                                        <xs:attribute type="xs:string" name="name" use="optional"/>
+                                        <xs:attribute type="xs:anyURI" name="serviceNamespaceURI" use="optional"/>
+                                        <xs:attribute type="xs:string" name="uriPattern" use="optional"/>
+                                        <xs:attribute type="xs:string" name="view" use="optional"/>
+                                        <xs:attribute type="xs:string" name="authRoles" use="optional"/>
+                                        <xs:attribute type="xs:string" name="writeSecLogMessage" use="optional"/>
+                                        <xs:attribute type="xs:string" name="writeToSecLog" use="optional"/>
+                                      </xs:extension>
+                                    </xs:simpleContent>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="className" use="optional"/>
+                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="pipeline">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="inputValidator" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="forward" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="className"/>
+                                    <xs:attribute type="xs:string" name="root"/>
+                                    <xs:attribute type="xs:string" name="schema"/>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="outputValidator" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="forward" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="className"/>
+                                    <xs:attribute type="xs:string" name="root"/>
+                                    <xs:attribute type="xs:string" name="schema"/>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="exits">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="exit">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                              <xs:attribute type="xs:string" name="state" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="pipe" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:annotation>
+                                    <xs:documentation>ERRORS</xs:documentation>
+                                  </xs:annotation>
+                                  <xs:complexType mixed="true">
+                                    <xs:sequence>
+                                      <xs:element name="sender" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="className"/>
+                                              <xs:attribute type="xs:string" name="jmsRealm"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="param" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="sessionKey" use="optional"/>
+                                              <xs:attribute type="xs:string" name="xpathExpression" use="optional"/>
+                                              <xs:attribute type="xs:string" name="value" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="forward" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="className" use="optional"/>
+                                    <xs:attribute type="xs:string" name="elementXPathExpression" use="optional"/>
+                                    <xs:attribute type="xs:string" name="ignoreExceptions" use="optional"/>
+                                    <xs:attribute type="xs:string" name="name" use="optional"/>
+                                    <xs:attribute type="xs:string" name="styleSheetName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="fileName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="replaceFrom" use="optional"/>
+                                    <xs:attribute type="xs:string" name="replaceTo" use="optional"/>
+                                    <xs:attribute type="xs:string" name="getInputFromFixedValue" use="optional"/>
+                                    <xs:attribute type="xs:string" name="throwException" use="optional"/>
+                                    <xs:attribute type="xs:string" name="skipOnEmptyInput" use="optional"/>
+                                    <xs:attribute type="xs:string" name="xslt2" use="optional"/>
+                                    <xs:attribute type="xs:string" name="sessionKey" use="optional"/>
+                                    <xs:attribute type="xs:string" name="value" use="optional"/>
+                                    <xs:attribute type="xs:string" name="storeResultInSessionKey" use="optional"/>
+                                    <xs:attribute type="xs:string" name="emptyForwardName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="notFoundForwardName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="actions" use="optional"/>
+                                    <xs:attribute type="xs:string" name="outputType" use="optional"/>
+                                    <xs:attribute type="xs:string" name="streamResultToServlet" use="optional"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="firstPipe" use="optional"/>
+                              <xs:attribute type="xs:string" name="transactionAttribute" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="description" use="optional"/>
+                        <xs:attribute type="xs:string" name="name" use="optional"/>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="scheduler" minOccurs="0">
+                      <xs:complexType mixed="true">
+                        <xs:sequence>
+                          <xs:element name="job" minOccurs="0">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:string" name="cronExpression"/>
+                                  <xs:attribute type="xs:string" name="description"/>
+                                  <xs:attribute type="xs:string" name="function"/>
+                                  <xs:attribute type="xs:string" name="name"/>
                                 </xs:extension>
                               </xs:simpleContent>
                             </xs:complexType>
@@ -25,14 +214,263 @@
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
-                    <xs:element type="xs:string" name="pipe"/>
                   </xs:sequence>
-                  <xs:attribute type="xs:string" name="firstPipe"/>
                 </xs:complexType>
               </xs:element>
-            </xs:sequence>
-            <xs:attribute type="xs:string" name="name"/>
-            <xs:attribute type="xs:string" name="description"/>
+              <xs:element name="monitoring">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="destinations" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="destination">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:string" name="className"/>
+                                  <xs:attribute type="xs:string" name="name"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="monitors" minOccurs="0">
+                      <xs:annotation>
+                        <xs:documentation>&lt;destination name="log" className="nl.nn.adapterframework.monitoring.SenderMonitorAdapter">
+			&lt;sender className="nl.nn.adapterframework.senders.LogSender" logCategory="monitoring"/>
+		&lt;/destination></xs:documentation>
+                      </xs:annotation>
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="monitor" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="alarm" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType mixed="true">
+                                    <xs:sequence>
+                                      <xs:element name="events" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element type="xs:string" name="event"/>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="filters" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="filterExclusive" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="eventCode" use="optional"/>
+                                    <xs:attribute type="xs:short" name="period" use="optional"/>
+                                    <xs:attribute type="xs:string" name="severity" use="optional"/>
+                                    <xs:attribute type="xs:byte" name="threshold" use="optional"/>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="clearing" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="events">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element type="xs:string" name="event"/>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="filters">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="filterExclusive" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="severity" use="optional"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="destinations" use="optional"/>
+                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                              <xs:attribute type="xs:string" name="type" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="scheduler" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="job">
+                            <xs:complexType mixed="true">
+                              <xs:sequence>
+                                <xs:element name="locker" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:simpleContent>
+                                      <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="ignoreTableNotExist"/>
+                                        <xs:attribute type="xs:string" name="jmsRealm"/>
+                                        <xs:attribute type="xs:string" name="objectId"/>
+                                      </xs:extension>
+                                    </xs:simpleContent>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="directoryCleaner" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:simpleContent>
+                                      <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="directory" use="optional"/>
+                                        <xs:attribute type="xs:string" name="notExistWarn" use="optional"/>
+                                        <xs:attribute type="xs:string" name="subdirectories" use="optional"/>
+                                        <xs:attribute type="xs:float" name="retention" use="optional"/>
+                                      </xs:extension>
+                                    </xs:simpleContent>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="cronExpression" use="optional"/>
+                              <xs:attribute type="xs:string" name="description" use="optional"/>
+                              <xs:attribute type="xs:string" name="function" use="optional"/>
+                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                              <xs:attribute type="xs:int" name="interval" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="enabled" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="ibis">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="adapter">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="receiver">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="listener">
+                                  <xs:complexType>
+                                    <xs:simpleContent>
+                                      <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="className"/>
+                                        <xs:attribute type="xs:string" name="consumes"/>
+                                        <xs:attribute type="xs:string" name="method"/>
+                                        <xs:attribute type="xs:string" name="uriPattern"/>
+                                      </xs:extension>
+                                    </xs:simpleContent>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="className"/>
+                              <xs:attribute type="xs:string" name="name"/>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="pipeline">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="exits">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="exit" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:short" name="code" use="optional"/>
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                              <xs:attribute type="xs:string" name="state" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element name="pipe" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="param" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="value" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="sender" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element name="param">
+                                              <xs:complexType>
+                                                <xs:simpleContent>
+                                                  <xs:extension base="xs:string">
+                                                    <xs:attribute type="xs:string" name="name" use="optional"/>
+                                                    <xs:attribute type="xs:string" name="sessionKey" use="optional"/>
+                                                    <xs:attribute type="xs:string" name="type" use="optional"/>
+                                                    <xs:attribute type="xs:string" name="value" use="optional"/>
+                                                  </xs:extension>
+                                                </xs:simpleContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                          <xs:attribute type="xs:string" name="className" use="optional"/>
+                                          <xs:attribute type="xs:string" name="jmsRealm" use="optional"/>
+                                          <xs:attribute type="xs:string" name="query" use="optional"/>
+                                          <xs:attribute type="xs:string" name="forceReload" use="optional"/>
+                                        </xs:complexType>
+                                      </xs:element>
+                                      <xs:element name="forward" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:simpleContent>
+                                            <xs:extension base="xs:string">
+                                              <xs:attribute type="xs:string" name="name" use="optional"/>
+                                              <xs:attribute type="xs:string" name="path" use="optional"/>
+                                            </xs:extension>
+                                          </xs:simpleContent>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute type="xs:string" name="className" use="optional"/>
+                                    <xs:attribute type="xs:string" name="name" use="optional"/>
+                                    <xs:attribute type="xs:string" name="root" use="optional"/>
+                                    <xs:attribute type="xs:string" name="schema" use="optional"/>
+                                    <xs:attribute type="xs:string" name="storeResultInSessionKey" use="optional"/>
+                                    <xs:attribute type="xs:string" name="getInputFromSessionKey" use="optional"/>
+                                    <xs:attribute type="xs:string" name="styleSheetName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="xslt2" use="optional"/>
+                                    <xs:attribute type="xs:string" name="action" use="optional"/>
+                                    <xs:attribute type="xs:string" name="getInputFromFixedValue" use="optional"/>
+                                    <xs:attribute type="xs:string" name="preserveInput" use="optional"/>
+                                    <xs:attribute type="xs:string" name="actions" use="optional"/>
+                                    <xs:attribute type="xs:string" name="fileName" use="optional"/>
+                                    <xs:attribute type="xs:string" name="outputType" use="optional"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="firstPipe"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="description"/>
+                        <xs:attribute type="xs:string" name="name"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+            <xs:attribute type="xs:string" name="name" use="optional"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>

@@ -7,7 +7,7 @@
 		>
 			<listener 
 				className="nl.nn.adapterframework.http.rest.ApiListener"
-				uriPattern="configurations/{configName}/{timestamp}/{version}" 
+				uriPattern="configurations/{configName}/{timestamp}" 
 				method="POST" 
 				consumes="XML" 
 			/>
@@ -27,7 +27,24 @@
 				<param name="OriginalXML"/>
 				
 				<forward name="failure" path="ServerError" />
-				<forward name="success" path="CreateBuildInfo" />
+				<forward name="success" path="GetNextVersion" />
+			</pipe>
+			
+			<pipe 
+				name="GetNextVersion" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				storeResultInSessionKey="version"
+			>
+  				<sender 
+	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
+	  				jmsRealm="jdbc"
+	  				queryType="select" 
+	  				query="SELECT MAX(VERSION) + 1 AS NEXT_VERSION FROM IBISCONFIG WHERE NAME = ?"
+  				>
+  					<param name="configName" sessionKey="configName"/>
+  				</sender>
+  				
+  				<forward name="success" path="CreateBuildInfo"/>
 			</pipe>
 			
 			<pipe 
@@ -39,7 +56,7 @@
 				storeResultInSessionKey="buildInfo"
 			>
 				<param name="timestamp" sessionKey="timestamp"/>
-				<param name="version" 	sessionKey="version"/>
+				<param name="version" 	sessionKey="version"  xpathExpression="*/*/*/field[@name='NEXT_VERSION']"/>
 				<param name="user" 		sessionKey="configName"/>
 				
   				<forward name="exception" path="ServerError"/>
@@ -145,7 +162,7 @@
 	  				VALUES (?, ? ,'config.zip', ? , now(),  true, true)"
   				>
   					<param name="configName" 	sessionKey="configName"/>
-  					<param name="version" 		sessionKey="version" 	type="integer"/>
+  					<param name="version" 		sessionKey="version" 	type="integer"	xpathExpression="*/*/*/field[@name='NEXT_VERSION']"/>
    					<param name="zip" 			sessionKey="stream"		type="inputstream" 		/>
   				</sender>
   				
