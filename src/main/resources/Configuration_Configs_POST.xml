@@ -27,8 +27,23 @@
 				<param name="OriginalXML"/>
 				
 				<forward name="failure" path="ServerError" />
-				<forward name="success" path="GetNextVersion" />
+				<forward name="success" path="CreateFileNames" />
 			</pipe>
+			
+			<pipe 
+				name="CreateFileNames" 
+				className="nl.nn.adapterframework.pipes.XsltPipe" 
+				styleSheetName="Configs_POST/xsl/CreateFileName.xsl" 
+				xslt2="true"
+				getInputFromFixedValue="&lt;OriginalXML/&gt;"
+				storeResultInSessionKey="fileNames"
+			>
+				<param name="configName" sessionKey="configName"/>
+				
+  				<forward name="exception" path="ServerError"/>
+  				<forward name="success" path="GetNextVersion"/>
+			</pipe>
+					
 			
 			<pipe 
 				name="GetNextVersion" 
@@ -91,7 +106,7 @@
 				preserveInput="true"
 				getInputFromSessionKey="OriginalXML"
 			>
-				<param name="filename" value="Ibis4Student/Configuration.xml"/>
+				<param name="filename" sessionKey="fileNames" xpathExpression="fileNames/config"/>
 				
 				<forward name="exception" path="ServerError" />
 				<forward name="success" path="WriteBuildInfoToZip" />
@@ -104,7 +119,7 @@
 				preserveInput="true"
 				getInputFromSessionKey="buildInfo"
 			>
-				<param name="filename" value="Ibis4Student/BuildInfo_SC.properties"/>
+				<param name="filename"  sessionKey="fileNames" xpathExpression="fileNames/build"/>
 				
 				<forward name="exception" path="ServerError" />
 				<forward name="success" path="CloseZipStream" />
