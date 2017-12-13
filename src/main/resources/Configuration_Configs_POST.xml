@@ -39,7 +39,7 @@
 	  				className="nl.nn.adapterframework.jdbc.FixedQuerySender" 
 	  				jmsRealm="jdbc"
 	  				queryType="select" 
-	  				query="SELECT MAX(VERSION) + 1 AS NEXT_VERSION FROM IBISCONFIG WHERE NAME = ?"
+	  				query="SELECT COUNT(*) + 1 AS NEXT_VERSION FROM IBISCONFIG WHERE NAME = ?"
   				>
   					<param name="configName" sessionKey="configName"/>
   				</sender>
