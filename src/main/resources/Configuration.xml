@@ -1,5 +1,7 @@
 <!DOCTYPE configuration [
 	<!ENTITY Configs_POST SYSTEM "Configuration_Configs_POST.xml">
+	<!ENTITY Configs_GET  SYSTEM "Configuration_Configs_GET.xml">
+	<!ENTITY Write_to_log SYSTEM "Configuration_Write_to_log.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
@@ -7,4 +9,6 @@
 		<!-- jmsRealm realmName="qcf" queueConnectionFactoryName="jms/qcf"/ -->
 	</jmsRealms>
 	&Configs_POST;
+	&Configs_GET;
+	&Write_to_log;
 </configuration>

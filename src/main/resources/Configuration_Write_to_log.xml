@@ -1,0 +1,62 @@
+{ request : { message : "Hallo" } }
+<ibis>
+  	<adapter name="Write_to_log" description="Writes a string to a log file">
+  	
+	    <receiver 
+	    	name="Write_to_log" 
+	    	className="nl.nn.adapterframework.receivers.GenericReceiver"
+	    >
+	      <listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="log/{fileName}" 
+	      	method="POST" 
+	      	consumes="JSON"
+	      	produces="JSON"
+	      />
+	    </receiver>
+	    
+	    <pipeline firstPipe="ConvertAndValidate">
+	    
+			<exits>
+			  	<exit path="OK" state="success" code="200"/>
+			  	<exit path="ServerError" state="error" code="500"/>
+			</exits>
+			
+			<pipe
+				name="ConvertAndValidate"
+				warn="false"
+				className="nl.nn.adapterframework.pipes.Json2XmlValidator"
+				schema="Log/xsd/input.xsd"
+				root="request"
+				storeResultInSessionKey="OriginalXML"
+			>
+				<forward name="success" path="PutMessageInSessionKey" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+			
+			<pipe 
+				name="PutMessageInSessionKey" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
+			>
+				<param name="message" sessionKey="OriginalXML" xpathExpression="request/message"/>
+				
+				<forward name="failure" path="ServerError" />
+				<forward name="success" path="CreateTextFile" />
+			</pipe>
+			
+			<pipe
+				name="CreateTextFile"
+				className="nl.nn.adapterframework.pipes.FilePipe"
+				fileNameSessionKey="fileName"
+				actions="write_append"
+				directory="${logDirectory}"
+				getInputFromSessionKey="message"
+			>
+			
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+
+	    </pipeline>
+  	</adapter>
+</ibis>
