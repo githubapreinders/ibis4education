@@ -1,0 +1,107 @@
+<ibis>
+  	<adapter name="Write_to_SQL" description="Writes some data to a database">
+  	
+	    <receiver 
+	    	name="Write_to_SQL" 
+	    	className="nl.nn.adapterframework.receivers.GenericReceiver"
+	    >
+	      <listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="sql" 
+	      	method="POST" 
+	      	consumes="XML"
+	      	produces="JSON"
+	      />
+	    </receiver>
+	    
+	    <pipeline firstPipe="ConvertAndValidate">
+	    
+			<exits>
+			  	<exit path="OK" state="success" code="200"/>
+			  	<exit path="ServerError" state="error" code="500"/>
+			</exits>
+			
+			<pipe
+				name="ConvertAndValidate"
+				className="nl.nn.adapterframework.pipes.XmlValidator"
+				schema="SQL/xsd/input.xsd"
+				root="person"
+				storeResultInSessionKey="OriginalXML"
+			>
+				<forward name="success" path="CheckIfEmailInDatabase" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>		
+			
+			<pipe
+				name="CheckIfEmailInDatabase"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					queryType="select"
+					jmsRealm="jdbc"
+					query="SELECT * FROM USERS WHERE EMAIL = LOWER(?)"
+				>
+					<param name="email" xpathExpression="person/email"/>
+				</sender>
+				
+				<forward name="success" path="CheckResult" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+			
+ 			<pipe 
+ 				name="CheckResult"
+				className="nl.nn.adapterframework.pipes.XmlIf"
+				xpathExpression="string-length( result/rowset/row/field[@name='EMAIL'] ) &gt; 0" 
+			>
+				
+				<forward name="then" path="UpdateUser" />
+				<forward name="else" path="CreateUser"/>
+			</pipe>	
+			
+			<!-- CREATE USER STARTS HERE -->
+			<pipe
+				name="CreateUser"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="INSERT INTO USERS (FIRSTNAME, LASTNAME, AGE, EMAIL) VALUES (?,?,?,LOWER(?))"
+				>
+					<param name="firstname" 	xpathExpression="person/firstname"/>
+					<param name="lastname" 		xpathExpression="person/lastname"/>
+					<param name="age" 			xpathExpression="person/age"		type="integer"/>
+					<param name="email" 		xpathExpression="person/email"/>
+				</sender>
+				
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+				
+			<!-- CREATE USER ENDS HERE -->
+			<!-- UPDATE USER STARTS HERE -->
+			<pipe
+				name="UpdateUser"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="UPDATE USERS SET FIRSTNAME = ?, LASTNAME = ?, AGE = ? WHERE EMAIL = LOWER(?)"
+				>
+					<param name="firstname" 	xpathExpression="person/firstname"/>
+					<param name="lastname" 		xpathExpression="person/lastname"/>
+					<param name="age" 			xpathExpression="person/age"		type="integer"/>
+					<param name="email" 		xpathExpression="person/email"/>
+				</sender>
+				
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+				<!-- UPDATE USER ENDS HERE -->
+	    </pipeline>
+  	</adapter>
+</ibis>

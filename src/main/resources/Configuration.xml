@@ -2,6 +2,7 @@
 	<!ENTITY Configs_POST SYSTEM "Configuration_Configs_POST.xml">
 	<!ENTITY Configs_GET  SYSTEM "Configuration_Configs_GET.xml">
 	<!ENTITY Write_to_log SYSTEM "Configuration_Write_to_log.xml">
+	<!ENTITY Write_To_SQL  		SYSTEM "Configuration_Write_To_SQL.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
@@ -11,4 +12,5 @@
 	&Configs_POST;
 	&Configs_GET;
 	&Write_to_log;
+	&Write_To_SQL;
 </configuration>
