@@ -1,4 +1,3 @@
-{ request : { message : "Hallo" } }
 <ibis>
   	<adapter name="Write_to_log" description="Writes a string to a log file">
   	

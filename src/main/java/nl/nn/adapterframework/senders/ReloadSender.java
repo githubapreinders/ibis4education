@@ -86,12 +86,15 @@ public class ReloadSender extends SenderWithParametersBase implements PipeAware 
 		} catch (Exception e) {
 			throw new SenderException(getLogPrefix()+"error evaluating Xpath expression activeVersion", e);
 		}
-
+		
 		Configuration configuration = getPipe().getAdapter().getConfiguration()
 				.getIbisManager().getConfiguration(configName);
 
 		if (configuration != null) {
 			String latestVersion = configuration.getVersion();
+			System.out.println(configName);
+			System.out.println(latestVersion);
+			System.out.println(!activeVersion.equals(latestVersion));
 			if (getForceReload() || (latestVersion != null && !activeVersion.equals(latestVersion))) {
 				IbisContext ibisContext = configuration.getIbisManager().getIbisContext();
 				ibisContext.reload(configName);
