@@ -39,5 +39,13 @@ TagDatabase
 			</column>
 		</createTable>
 	</changeSet>
+	<changeSet id="2" author="Ap">
+		<createTable tableName="jsonmonster">
+			<column name="mymonster" 	type="mediumtext" >
+				<constraints nullable="false"/>
+			</column>
+		</createTable>
+	</changeSet>
+
 
 </databaseChangeLog>
