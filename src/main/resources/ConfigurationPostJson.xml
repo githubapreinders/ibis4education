@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ibis>
+	<adapter name="PostJSON" description="Stores JSON in DB with as endpoint .../api/storejson ">
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="PostJSON_receiver"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="storejson"
+				method="POST"
+				consumes="JSON"
+				produces="JSON"
+			/>
+		</receiver>	
+		<pipeline firstPipe="savejsondirectly">	
+			<exits>
+				<exit path="Created" state="success" code="201" />
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>	
+				<pipe
+				name="savejsondirectly" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="INSERT INTO JSONMONSTER (MYMONSTER) VALUES (?)"
+				>
+					<param name="json" 	sessionKey="originalMessage"/>
+				</sender>
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="Created" />
+			</pipe>						
+		</pipeline>
+	</adapter>
+</ibis>

@@ -22,8 +22,7 @@ RenameTable
 RenameView
 TagDatabase
  -->
-
-	<changeSet id="1" author="Laurens en Ap">
+	<!-- <changeSet id="1" author="Laurens en Ap">
 		<createTable tableName="users">
 			<column name="firstname" 	type="varchar(255)" >
 				<constraints nullable="false"/>
@@ -41,11 +40,12 @@ TagDatabase
 	</changeSet>
 	<changeSet id="2" author="Ap">
 		<createTable tableName="jsonmonster">
-			<column name="mymonster" 	type="mediumtext" >
+			<column name="messageid" 	type="int" >
 				<constraints nullable="false"/>
 			</column>
+			<column name="mymonster" 	type="mediumtext" >
+				<constraints nullable="false"/>
+			</column>			
 		</createTable>
-	</changeSet>
-
-
+	</changeSet> -->
 </databaseChangeLog>

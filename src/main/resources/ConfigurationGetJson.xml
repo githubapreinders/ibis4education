@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ibis>
+	<adapter name="getjson" description="gets a jsonmonster from the db via the endpoint ...api/getjson">
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="getjson_receiver"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="getjson"
+				method="GET"
+				produces="json"
+			/>
+		</receiver>
+		<pipeline firstPipe="GetJSON">
+			<exits>
+				<exit path="Created" state="success" code="201" />
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>					
+			<pipe
+				name="GetJSON" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT * FROM JSONMONSTER ORDER BY MONSTERID DESC LIMIT 1"
+				>                                       
+				</sender>			
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="Map2JSON" />
+			</pipe>
+			<pipe
+				name="Map2JSON"
+				className="nl.nn.adapterframework.pipes.XsltPipe"
+				xslt2="true"
+				styleSheetName="getjson/getjson.xsl"
+			>
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="xml2json" />
+			</pipe>
+			<pipe
+				name="xml2json"
+				className="nl.nn.adapterframework.pipes.JsonPipe"
+				direction="xml2json"
+			>
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="Created" />
+			</pipe>
+		</pipeline>
+	</adapter>
+</ibis>

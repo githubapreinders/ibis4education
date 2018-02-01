@@ -1,11 +1,11 @@
 <!DOCTYPE configuration [
-	<!ENTITY Write_to_log SYSTEM "Configuration_Write_to_log.xml">
-	<!ENTITY Write_To_SQL  		SYSTEM "Configuration_Write_To_SQL.xml">
+	<!ENTITY  GetJson SYSTEM "ConfigurationGetJson.xml">
+	<!ENTITY PostJson SYSTEM "ConfigurationPostJson.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
 		<jmsRealm realmName="jdbc" datasourceName="jdbc/${instance.name.lc}"/>
-		<!-- jmsRealm realmName="qcf" queueConnectionFactoryName="jms/qcf"/ -->
 	</jmsRealms>
-	&Write_To_SQL;
+	&GetJson;
+	&PostJson;
 </configuration>
