@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Moderator</title>
+</head>
+<body>
+
+<div  id="mynavbar">
+                <div class="navBarLeft" style="width:45%;">
+                      <a ui-sref="app">  
+                        <img src="../media/ip-logo.png"  class="iplogo2" />
+                      </a>
+                    <label>Selected Item : <select id = 'myselect' ng-model="vm.selectedItem" ng-options="value.classname for (key,value) in vm.dataModel"  ></select></label>
+                </div>
+
+
+                <div class = "navBarRight" >
+                    
+
+                    <div class="filler"></div>
+
+                    <span ng-show = "vm.showSpinner" style="color:grey;">
+                        <i   class="fa fa-spinner fa-spin fa-2x fa-fw "></i>
+                    </span>
+
+                    <div class="filler"></div>
+
+
+                    <span ng-click="vm.confirmDelete()" class="mybutton">
+                        <i class="fa  fa-plus fa-rotate-45  fa-2x" style="color:red;"></i>
+                    </span>
+
+                    <span ng-click="vm.postJsonBulk()" class="mybutton ">
+                        <i class="fa   fa-2x" style="font-size: 14px;">BULK</i>
+                    </span>
+
+                    <span ng-click="vm.showModel()" class="mybutton ">
+                        <i class="fa fa-search-plus fa-2x" ></i>
+                    </span>
+
+                    <span ng-click="vm.postTag()" class="mybutton ">
+                        <i class="fa fa-save fa-2x"></i>
+                    </span>
+
+                    <span ng-click="vm.addNewClass()" class="mybutton ">
+                        <i class="fa fa-plus  fa-2x"></i>
+                    </span>
+
+                </div>
+            </div>
+
+<div class="mainmodcontainer">
+    <div class="leftmodcontainer" ng-include="'./views/leftmodcontainer.html'"></div>
+
+    <div class = "rightmodcontainer" ng-include="'./views/moddescription.html'">
+    </div>
+</div>
+
+
+
+</html>
