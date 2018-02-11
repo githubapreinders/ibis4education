@@ -1,6 +1,8 @@
 <!DOCTYPE configuration [
 	<!ENTITY  GetJson SYSTEM "ConfigurationGetJson.xml">
 	<!ENTITY PostJson SYSTEM "ConfigurationPostJson.xml">
+	<!ENTITY PostIafTag SYSTEM "Configuration_PostIafTag.xml">
+	<!ENTITY DeleteIafTag SYSTEM "Configuration_DeleteIafTag.xml">
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
@@ -8,4 +10,6 @@
 	</jmsRealms>
 	&GetJson;
 	&PostJson;
+	&PostIafTag;
+	&DeleteIafTag;
 </configuration>
