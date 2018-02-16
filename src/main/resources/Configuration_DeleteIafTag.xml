@@ -1,0 +1,42 @@
+<ibis>
+  	<adapter name="Delete_IafTag" description="Deletes an Iaftag from the IAFTAGS table if possible">
+  	
+	    <receiver 
+	    	name="Delete_IafTag_Receiver" 
+	    	className="nl.nn.adapterframework.receivers.GenericReceiver"
+	    >
+	      <listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="deleteiaftag/{theclassname}" 
+	      	method="GET" 
+	      />
+	    </receiver>
+	    
+	    <pipeline firstPipe="DeleteTag">
+	    
+			<exits>
+			  	<exit path="OK" state="success" code="200"/>
+			  	<exit path="ServerError" state="error" code="500"/>
+			</exits>
+			<pipe
+				name="DeleteTag"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="DELETE FROM IAFTAGS WHERE CLASSNAME = ?"
+				>
+					
+					<param name="classname" 		sessionKey="theclassname"/>
+					
+				</sender>
+				
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>	
+			
+	
+	    </pipeline>
+  	</adapter>
+</ibis>

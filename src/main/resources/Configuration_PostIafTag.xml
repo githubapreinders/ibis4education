@@ -1,0 +1,107 @@
+<ibis>
+  	<adapter name="Post_IafTag" description="Inserts or Updates an Iaftag into the IAFTAGS table">
+  	
+	    <receiver 
+	    	name="Post_IafTag_Receiver" 
+	    	className="nl.nn.adapterframework.receivers.GenericReceiver"
+	    >
+	      <listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="postiaftag" 
+	      	method="POST" 
+	      	consumes="JSON"
+	      	produces="XML"
+	      />
+	    </receiver>
+	    
+	    <pipeline firstPipe="ConvertAndValidate">
+	    
+			<exits>
+			  	<exit path="OK" state="success" code="200"/>
+			  	<exit path="ServerError" state="error" code="500"/>
+			</exits>
+			
+			<pipe
+				name="ConvertAndValidate"
+				warn="false"
+				className="nl.nn.adapterframework.pipes.Json2XmlValidator"
+				schema="PostIafTag/xsd/input.xsd"
+				root="iaftag"
+				storeResultInSessionKey="OriginalJson"
+			>
+				<forward name="success" path="CheckIfTagInDatabase" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+			
+			<pipe
+				name="CheckIfTagInDatabase"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					queryType="select"
+					jmsRealm="jdbc"
+					query="SELECT * FROM IAFTAGS WHERE LOWER(CLASSNAME) = LOWER(?)"
+				>
+					<param name="classname" xpathExpression="iaftag/classname"/>
+				</sender>
+				
+				<forward name="success" path="CheckResult" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+			
+ 			<pipe 
+ 				name="CheckResult"
+				className="nl.nn.adapterframework.pipes.XmlIf"
+				xpathExpression="string-length( result/rowset/row/field[@name='CLASSNAME'] ) &gt; 0" 
+			>
+				
+				<forward name="then" path="UpdateTag" />
+				<forward name="else" path="CreateTag"/>
+			</pipe>			
+			<!-- CREATE TAG STARTS HERE -->
+			<pipe
+				name="CreateTag"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalJson"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="INSERT INTO IAFTAGS (CLASSNAME, IAFTAG, THEDATE) VALUES (?,?,?)"
+				>
+					<param name="classname" 	xpathExpression="iaftag/classname"/>
+					<param name="iaftag" 	xpathExpression="iaftag/thetag"/>
+					<param name="thedate" 		xpathExpression="iaftag/thedate"		type="integer"/>
+				</sender>
+				
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+				
+			<!-- CREATE USER ENDS HERE -->
+			<!-- UPDATE USER STARTS HERE -->
+			<pipe
+				name="UpdateTag"	
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalJson"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="UPDATE IAFTAGS SET IAFTAG = ?, THEDATE = ? WHERE CLASSNAME = ?"
+				>
+					<param name="thetag" 	xpathExpression="iaftag/thetag"/>
+					<param name="thedate" 		xpathExpression="iaftag/thedate"/>
+					<param name="classname" 		xpathExpression="iaftag/classname"/>
+					
+				</sender>
+				
+				<forward name="success" path="OK" />
+				<forward name="failure" path="ServerError"/>
+			</pipe>
+				<!-- UPDATE USER ENDS HERE -->
+	
+	    </pipeline>
+  	</adapter>
+</ibis>

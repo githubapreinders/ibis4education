@@ -91,10 +91,7 @@ public class ReloadSender extends SenderWithParametersBase implements PipeAware 
 				.getIbisManager().getConfiguration(configName);
 
 		if (configuration != null) {
-			String latestVersion = configuration.getVersion();
-			System.out.println(configName);
-			System.out.println(latestVersion);
-			System.out.println(!activeVersion.equals(latestVersion));
+			String latestVersion = configuration.getVersion();			
 			if (getForceReload() || (latestVersion != null && !activeVersion.equals(latestVersion))) {
 				IbisContext ibisContext = configuration.getIbisManager().getIbisContext();
 				ibisContext.reload(configName);
