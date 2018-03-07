@@ -9,7 +9,19 @@
 
     <title>IBIS EDITOR</title>
     
-    <link rel="stylesheet" href="styles/main.css">
+    <!-- build:css styles/main.css -->
+    <link href="css/mystyle.css" rel="stylesheet" >
+    <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="bower_components/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css" >
+     <link rel="stylesheet" href="bower_components/angular-ui-tree/dist/angular-ui-tree.min.css">
+    <link href="codemirror/monokai.css" rel="stylesheet">
+    <link href="codemirror/twilight.css" rel="stylesheet">
+    <link href="codemirror/neat.css" rel="stylesheet">
+    <link href="codemirror/show-hint.css" rel="stylesheet">
+    <link href="codemirror/foldgutter.css" rel="stylesheet">
+    <!-- endbuild -->
 
     
 </head>
@@ -18,23 +30,69 @@
 
 <div ui-view="content" style="width:100%; height:100%;" id="myapp"></div>
 
-<script src="scripts/angular.min.js"></script>
-<script src="scripts/angular-ui-router.min.js"></script>
-<script src="scripts/ui-bootstrap-tpls.min.js"></script>
-<script src="scripts/angular-cookies.min.js"></script>
-<script src="scripts/angularLocalStorage.min.js"></script>
-<script src="scripts/angular-ui-tree.min.js"></script>
-<script src="scripts/jszip.min.js"></script>
-<script src="scripts/underscore-min.js"></script>
-<script src="scripts/angular-animate.min.js"></script>
-<script src="scripts/FileSaver.min.js"></script>
+<!-- build:js scripts/angular.min.js -->
+<script src="bower_components/angular/angular.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/angular-ui-router.min.js -->
+<script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/ui-bootstrap-tpls.min.js -->
+<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js" ></script>
+<!-- endbuild -->
+<!-- build:js scripts/angular-cookies.min.js -->
+<script src="bower_components/angular-cookies/angular-cookies.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/angularLocalStorage.min.js -->
+<script src="bower_components/angularLocalStorage/dist/angularLocalStorage.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/angular-ui-tree.min.js -->
+<script src="bower_components/angular-ui-tree/dist/angular-ui-tree.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/jszip.min.js -->
+<script src="bower_components/jszip/dist/jszip.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/underscore-min.js -->
+<script src="bower_components/underscore/underscore-min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/angular-animate.min.js -->
+<script src="bower_components/angular-animate/angular-animate.min.js"></script>
+<!-- endbuild -->
+<!-- build:js scripts/FileSaver.min.js -->
+<script src="bower_components/file-saver/FileSaver.min.js"></script>
+<!-- endbuild -->
 
 
 
-<script src="scripts/scripts.min.js"></script>
+<!-- build:js scripts/scripts.min.js -->
+<script src="scripts/application.js"></script>
+<script src="scripts/zipservice.js"></script>
+<script src="scripts/services.js"></script>
+<script src="scripts/controllers.js"></script>
+<script src="scripts/treecontroller.js"></script>
+<script src="scripts/moderatorcontroller.js"></script>
+<script src="scripts/moderatorservices.js"></script>
+<script src="scripts/directives.js"></script>
+<script src="scripts/xmlTag.js"></script>
+<!-- endbuild -->
 
+<!-- <script src="scripts/xmllint.js"></script> -->
 
-<script src="scripts/codemirror.min.js"></script>
+<!-- build:js scripts/codemirror.min.js -->
+<script src="bower_components/codemirror/lib/codemirror.js"  ></script>
+<script src="bower_components/js-beautify/js/lib/beautify.js"></script>
+<script src="bower_components/js-beautify/js/lib/beautify-css.js"></script>
+<script src="bower_components/js-beautify/js/lib/beautify-html.js"></script>
+<script src="bower_components/angular-ui-codemirror/ui-codemirror.js" ></script>
+<script src="codemirror/foldcode.js"></script>
+<script src="codemirror/foldgutter.js"></script>
+<script src="codemirror/matchtags.js"></script>
+<script src="codemirror/search.js"></script>
+<script src="codemirror/searchcursor.js"></script>
+<script src="codemirror/show-hint.js"></script>
+<script src="codemirror/xml-fold.js"></script>
+<script src="codemirror/xml-hint.js"></script>
+<script src="codemirror/xml.js"></script>
+<!-- endbuild -->
 
 
 

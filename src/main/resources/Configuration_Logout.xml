@@ -1,0 +1,71 @@
+<ibis>
+	<adapter name="Logout" description="Logout" >
+	
+		<receiver 	className="nl.nn.adapterframework.receivers.GenericReceiver"
+					name="Logout">
+			<listener 
+					className="nl.nn.adapterframework.http.RestListener"
+					uriPattern="logout"
+					method="GET"
+			/>
+				
+		</receiver>
+		
+		<receiver
+			active="${ApiListener.active}" 
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="Logout"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="logout"
+				method="POST"
+				consumes="JSON"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		 
+		<pipeline firstPipe="DeleteAccessToken">
+		
+			<exits>
+				<exit path="READY" state="success" />
+			</exits>
+			
+			<pipe 	name="DeleteAccessToken" 
+					className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+					storeResultInSessionKey="team_Id"
+			>
+					<sender
+						className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+						jmsRealm="${jdbc.realm}"
+						query="delete from Accesstokens where token=?">
+						<param name="token" sessionKey="token"/>
+				    </sender>
+				    
+				    <forward name="exception" path="Format error" />
+					<forward name="success" path="READY" />
+			</pipe>
+
+			<pipe
+					name="Format error"
+					className="nl.nn.adapterframework.pipes.XsltPipe"
+					styleSheetName="../../Common/xsl/ManageDatabaseRLY.xsl"
+					getInputFromFixedValue="&lt;dummy/&gt;"
+			>
+				<param name="systemDate" pattern="{now,date,yyyy-MM-dd'T'HH:mm:ss.SSS}" />
+				<param name="errorCode" defaultValue="Database error" sessionKey="dummy" />
+				
+				<forward name="success" path="InternalServerError" />
+			</pipe>
+			
+			<pipe
+				name="InternalServerError" 
+				preserveInput="true" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession">
+				<param name="statusCode" value="500"/>
+				<forward name="success" path="READY" />
+			</pipe>
+		</pipeline>
+	</adapter>
+</ibis>

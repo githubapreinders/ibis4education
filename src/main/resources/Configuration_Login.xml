@@ -1,0 +1,257 @@
+<ibis>
+	<adapter name="Login" description="Login service" >
+	
+		<receiver 	className="nl.nn.adapterframework.receivers.GenericReceiver"
+					name="Login">
+			<listener 
+					className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      			uriPattern="login" 
+	      			method="POST" 
+	      			consumes="JSON"
+	      			produces="XML"
+			/>		
+		</receiver>
+		
+		
+		<pipeline firstPipe="convert json to xml">
+		
+			<exits>
+				<exit path="OK" state="success" code="200" />
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorised" state="error" code="401" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="convert json to xml"
+				warn="false"
+				className="nl.nn.adapterframework.pipes.Json2XmlValidator"
+				schema="Login/xsd/input.xsd"
+				root="logindetails"
+				storeResultInSessionKey="OriginalXML"
+			>
+				<forward name="success" path="CheckDetailsInDb" />
+				<forward name="failure" path="ServerError"/>
+				
+			</pipe>
+									
+			<pipe 	
+				name="CheckDetailsInDb" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+				storeResultInSessionKey="dbDetails"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT * FROM USERS WHERE EMAIL=?">
+					<param name="username" xpathExpression="logindetails/email"/>
+				</sender>
+					
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="CheckResult"/>
+			</pipe>
+			
+			<pipe 
+ 				name="CheckResult"
+				className="nl.nn.adapterframework.pipes.XmlIf"
+				xpathExpression="boolean(result/rowset/row[@number=0])" 
+			>
+				
+				<forward name="then" path="PutParametersInSessionKey" />
+				<forward name="else" path="NotAuthorised"/>
+			</pipe>	
+			
+			
+			
+			
+			<pipe 
+				name="PutParametersInSessionKey" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
+			>
+				<param name="storedpassword" sessionKey="dbDetails" xpathExpression="*/*/*/field[@name='PASSWORD']"/>
+				<param name="postedpassword" sessionKey="OriginalXML" xpathExpression="logindetails/password"/>
+				<param name="storedinstancename" sessionKey="dbDetails" xpathExpression="*/*/*/field[@name='INSTANCENAME']"/>
+				<param name="postedinstancename" sessionKey="OriginalXML" xpathExpression="logindetails/instancename"/>
+				
+				<forward name="failure" path="ServerError" />
+				<forward name="success" path="ComparePws" />
+			</pipe>
+			
+			
+			<pipe 
+				name="ComparePws"
+				className="nl.nn.adapterframework.pipes.CompareStringPipe"
+			>
+				<param name="operand1" sessionKey="storedpassword" />
+				<param name="operand2" sessionKey="postedpassword" />
+				
+				<forward name="equals" path="CompareInstances" />
+				<forward name="lessthan" path="IncorrectPassword" />
+				<forward name="greaterthan" path="IncorrectPassword" />
+			</pipe>
+			
+			<pipe 
+				name="CompareInstances"
+				className="nl.nn.adapterframework.pipes.CompareStringPipe"
+			>
+				<param name="operand1" sessionKey="storedinstancename" />
+				<param name="operand2" sessionKey="postedinstancename" />
+				
+				<forward name="equals" path="CreateAccessToken" />
+				<forward name="lessthan" path="IncorrectInstanceName" />
+				<forward name="greaterthan" path="IncorrectInstanceName" />
+			</pipe>
+			
+															
+						
+			<pipe
+				name="CreateAccessToken"
+				className="nl.nn.adapterframework.pipes.XsltPipe"
+				styleSheetName="Login/xsl/CreateAccessToken.xsl"
+				getInputFromFixedValue="&lt;dummy/&gt;"
+				xslt2="true"
+				storeResultInSessionKey="AccessToken"
+			>
+				<param name="token" pattern="{uuid}"/>
+				<param name="email" sessionKey="OriginalXML" xpathExpression="*/email"/>
+				<forward name="success" path="DeleteOldToken" />
+			</pipe>
+			
+			<pipe
+				name="DeleteOldToken" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+					<sender
+						className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+						jmsRealm="jdbc"
+						query="delete from ACCESSTOKENS where EMAIL=LOWER(?)">
+						
+						<param name="email" xpathExpression="AccessToken/Email" sessionKey="AccessToken"/>
+					</sender>
+						
+					<forward name="exception" path="ServerError" />
+					<forward name="success" path="StoreAccessToken" />
+			</pipe>
+			
+			<pipe
+				name="StoreAccessToken" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+			>
+					<sender
+						className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+						jmsRealm="jdbc"
+						query="INSERT INTO ACCESSTOKENS (TOKEN, EMAIL, CREATIONDATE ) VALUES (?, ?, NOW())">
+						
+						<param name="token" xpathExpression="AccessToken/Token" sessionKey="AccessToken"/>
+						<param name="email" xpathExpression="AccessToken/Email" sessionKey="AccessToken"/>
+					</sender>
+						
+					<forward name="exception" path="ServerError" />
+					<forward name="success" path="GetUser" />
+			</pipe>
+			
+			<pipe
+				name="GetUser" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				preserveInput="true" 
+				storeResultInSessionKey="user" 
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT * FROM USERS WHERE EMAIL=LOWER(?)"	
+				/>
+				
+				<param name="email" sessionKey="OriginalXML" xpathExpression="*/email"/>				
+				<forward name="success" path="saveLogin" />
+			</pipe>
+			
+			<pipe
+				name="saveLogin" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+				preserveInput="true"
+			>
+					<sender
+						className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+						jmsRealm="jdbc"
+						query="UPDATE USERS SET LAST_LOGIN = NOW() WHERE EMAIL = ?">
+						
+						<param name="username" xpathExpression="*/email"/>
+					</sender>
+						
+					<forward name="exception" path="ServerError" />
+					<forward name="success" path="CreateOkResponse" />
+			</pipe>
+			
+			
+			
+			
+			<pipe
+				name="CreateOkResponse"
+				className="nl.nn.adapterframework.pipes.XsltPipe"
+				styleSheetName="Login/xsl/GiveAccessToken.xsl"
+				xslt2="true"
+				getInputFromFixedValue="&lt;dummy/&gt;"
+				>
+				<param name="user" sessionKey ="user" type="domdoc"  />
+				<param name="accesstoken" sessionKey ="AccessToken" type="domdoc"  />
+				
+				<forward name="success" path="OK2Json" />
+			</pipe>
+			
+			<pipe
+					name="OK2Json"
+					className="nl.nn.adapterframework.pipes.Json2XmlValidator"
+					outputFormat="json"
+					schema="Login/xsd/outputOk.xsd"
+					root="loginDetails"
+					jsonWithRootElements="true"
+			>
+					<forward name="success" path="OK" />
+					<forward name="failure" path="ServerError"/>
+			</pipe>
+		
+			<pipe
+				name="IncorrectPassword"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString="&lt;loginDetails&gt;&lt;result&gt;Incorrect username and password combination&lt;/result&gt;&lt;/loginDetails&gt;"
+			>
+				<forward name="success" path="NotAuthorized2Json" />
+			</pipe>
+			
+			<pipe
+					name="NotAuthorized2Json"
+					className="nl.nn.adapterframework.pipes.Json2XmlValidator"
+					outputFormat="json"
+					schema="Login/xsd/outputNotAuthorised.xsd"
+					root="loginDetails"
+					jsonWithRootElements="true"
+			>
+					<forward name="success" path="NotAuthorised" />
+					<forward name="failure" path="ServerError"/>
+
+			</pipe>
+			
+			
+			<pipe
+				name="IncorrectInstanceName"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString="&lt;loginDetails&gt;&lt;result&gt;Incorrect instance you are using. Consult the webmaster.&lt;/result&gt;&lt;/loginDetails&gt;"
+			>
+				<forward name="success" path="NotAuthorized2Json" />
+			</pipe>
+			
+			
+			
+			
+			
+			
+		</pipeline>
+	</adapter>
+</ibis>

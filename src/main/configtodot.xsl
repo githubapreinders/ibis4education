@@ -122,11 +122,11 @@
 						<xsl:with-param name="forwardName">thenForwardName</xsl:with-param>
 					</xsl:call-template>
 				</xsl:if>
-				<xsl:variable name="efn" select="@elseForwardName" />
-				<xsl:if test="string-length($efn)&gt;0 and (forward/@name=$efn)=false()">
+				<xsl:variable name="afn" select="@elseForwardName" />
+				<xsl:if test="string-length($afn)&gt;0 and (forward/@name=$afn)=false()">
 					<xsl:call-template name="forward">
 						<xsl:with-param name="pipeName" select="@name" />
-						<xsl:with-param name="forwardPath" select="$efn" />
+						<xsl:with-param name="forwardPath" select="$afn" />
 						<xsl:with-param name="forwardName">elseForwardName</xsl:with-param>
 					</xsl:call-template>
 				</xsl:if>

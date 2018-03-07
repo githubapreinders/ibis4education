@@ -1,0 +1,60 @@
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+<!-- When using one of the following commands, a rollback script is not required
+AddColumn
+AddDefaultValue
+AddForeignKeyConstraint
+AddLookupTable
+AddNotNullConstraint
+AddPrimaryKey
+AddUniqueConstraint
+CreateIndex
+CreateSequence
+CreateTable
+CreateView
+DropNotNullConstraint
+RenameColumn
+RenameTable
+RenameView
+TagDatabase
+ -->
+	<changeSet id="USERS" author="Init DB" failOnError="false">
+		<createTable tableName="USERS">
+			<column name="UID" type="int" autoIncrement="true">
+				<constraints primaryKey="true" unique="true" nullable="false"></constraints>
+			</column>
+			<column name="NAME"			type="varchar(255)"></column>
+			<column name="LASTNAME"		type="varchar(255)"></column>
+			<column name="BIRTHDATE"	type="date"></column>
+			<column name="COMPANY"		type="varchar(255)"></column>
+			<column name="EMAIL"		type="varchar(255)"></column>
+			<column name="ADDRESS"		type="varchar(255)"></column>
+			<column name="POSTALCODE"	type="varchar(255)"></column>
+			<column name="CITY"			type="varchar(255)"></column>
+			<column name="COUNTRY"		type="varchar(255)"></column>
+			<column name="PHONENUMBER"	type="varchar(255)"></column>
+			<column name="PASSWORD"		type="varchar(255)"></column>
+			<column name="INSTANCENAME"	type="varchar(255)"></column>
+			<column name="ACTIVE"		type="boolean" defaultValueBoolean="true">
+				<constraints nullable="false"/>
+			</column>
+			<column name="LAST_LOGIN"	type="java.sql.Types.TIMESTAMP"></column>
+		</createTable>
+	</changeSet>
+	
+	<changeSet id="ACCESSTOKENS" author="Init DB" failOnError="false">
+		<createTable tableName="ACCESSTOKENS">
+			<column name="TOKEN"		type="varchar(255)" >
+				<constraints primaryKey="true" unique="true" nullable="false"/>
+			</column>
+			<column name="CREATIONDATE" type="date" defaultValueDate="NOW()"></column>
+			<column name="EMAIL"		type="varchar()"></column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="fk_accesstokens_email" referencedTableName="USERS" baseColumnNames="EMAIL" baseTableName="ACCESSTOKENS" referencedColumnNames="EMAIL" onDelete="CASCADE" onUpdate="CASCADE"/>
+	</changeSet>
+	
+</databaseChangeLog>

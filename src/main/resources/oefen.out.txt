@@ -1,0 +1,114 @@
+
+	
+		
+	
+	
+
+	digraph {
+node [shape=box]
+START [shape=ellipse]
+START -> "GetJSON";
+"GetJSON" [label="GetJSON\n(FixedQuerySender)", shape=parallelogram]
+"GetJSON" -> "ServerError" [label="exception"];
+"GetJSON" -> "Map2JSON" [label="success"];
+"Map2JSON" [label="Map2JSON\n(XsltPipe)"]
+"Map2JSON" -> "ServerError" [label="exception"];
+"Map2JSON" -> "xml2json" [label="success"];
+"xml2json" [label="xml2json\n(JsonPipe)"]
+"xml2json" -> "ServerError" [label="exception"];
+"xml2json" -> "Created" [label="success"];
+"Created" [style=rounded]
+"Created" -> "END" [label="success"];
+END [shape=ellipse]
+"NotModified" [style=rounded]
+"NotModified" -> "END" [label="success"];
+END [shape=ellipse]
+"BadRequest" [style=rounded]
+"BadRequest" -> "END" [label="error"];
+END [shape=ellipse]
+"NotAuthorized" [style=rounded]
+"NotAuthorized" -> "END" [label="error"];
+END [shape=ellipse]
+"NotAllowed" [style=rounded]
+"NotAllowed" -> "END" [label="error"];
+END [shape=ellipse]
+"ServerError" [style=rounded]
+"ServerError" -> "END" [label="error"];
+END [shape=ellipse]
+}
+
+
+	
+
+	digraph {
+node [shape=box]
+START [shape=ellipse]
+START -> "savejsondirectly";
+"savejsondirectly" [label="savejsondirectly\n(FixedQuerySender)", shape=parallelogram]
+"savejsondirectly" -> "ServerError" [label="exception"];
+"savejsondirectly" -> "Created" [label="success"];
+"Created" [style=rounded]
+"Created" -> "END" [label="success"];
+END [shape=ellipse]
+"NotModified" [style=rounded]
+"NotModified" -> "END" [label="success"];
+END [shape=ellipse]
+"BadRequest" [style=rounded]
+"BadRequest" -> "END" [label="error"];
+END [shape=ellipse]
+"NotAuthorized" [style=rounded]
+"NotAuthorized" -> "END" [label="error"];
+END [shape=ellipse]
+"NotAllowed" [style=rounded]
+"NotAllowed" -> "END" [label="error"];
+END [shape=ellipse]
+"ServerError" [style=rounded]
+"ServerError" -> "END" [label="error"];
+END [shape=ellipse]
+}
+
+	
+  	digraph {
+node [shape=box]
+START [shape=ellipse]
+START -> "ConvertAndValidate";
+"ConvertAndValidate" [label="ConvertAndValidate\n(Json2XmlValidator)"]
+"ConvertAndValidate" -> "CheckIfTagInDatabase" [label="success"];
+"ConvertAndValidate" -> "ServerError" [label="failure"];
+"CheckIfTagInDatabase" [label="CheckIfTagInDatabase\n(FixedQuerySender)", shape=parallelogram]
+"CheckIfTagInDatabase" -> "CheckResult" [label="success"];
+"CheckIfTagInDatabase" -> "ServerError" [label="failure"];
+"CheckResult" [label="CheckResult\n(XmlIf)"]
+"CheckResult" -> "UpdateTag" [label="then"];
+"CheckResult" -> "CreateTag" [label="else"];
+"CheckResult" [shape=diamond]
+"CreateTag" [label="CreateTag\n(FixedQuerySender)", shape=parallelogram]
+"CreateTag" -> "OK" [label="success"];
+"CreateTag" -> "ServerError" [label="failure"];
+"UpdateTag" [label="UpdateTag\n(FixedQuerySender)", shape=parallelogram]
+"UpdateTag" -> "OK" [label="success"];
+"UpdateTag" -> "ServerError" [label="failure"];
+"OK" [style=rounded]
+"OK" -> "END" [label="success"];
+END [shape=ellipse]
+"ServerError" [style=rounded]
+"ServerError" -> "END" [label="error"];
+END [shape=ellipse]
+}
+
+	
+  	digraph {
+node [shape=box]
+START [shape=ellipse]
+START -> "DeleteTag";
+"DeleteTag" [label="DeleteTag\n(FixedQuerySender)", shape=parallelogram]
+"DeleteTag" -> "OK" [label="success"];
+"DeleteTag" -> "ServerError" [label="failure"];
+"OK" [style=rounded]
+"OK" -> "END" [label="success"];
+END [shape=ellipse]
+"ServerError" [style=rounded]
+"ServerError" -> "END" [label="error"];
+END [shape=ellipse]
+}
+

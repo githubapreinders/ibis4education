@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ibis>
+<adapter name="Get Me" description="Gets the current user on the basis of an Authorization Header" >
+	
+		<receiver 	className="nl.nn.adapterframework.receivers.GenericReceiver"
+					name="GetMe">
+			<listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="me" 
+	      	method="POST" 
+	      	consumes="JSON"
+	      	produces="XML"
+	      />
+				
+		</receiver>
+		
+		<pipeline firstPipe="convert json to xml">
+		
+			<exits>
+				<exit path="OK" state="success" code="200" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+			</exits>
+			
+			<pipe
+				name="convert json to xml"
+				className="nl.nn.adapterframework.pipes.JsonPipe"
+				storeResultInSessionKey="OriginalXML"
+			>
+
+				<forward name="success" path="validate incoming Xml" />
+			</pipe>
+			
+			<pipe 
+				name="validate incoming Xml"
+				className="nl.nn.adapterframework.pipes.XmlValidator"
+				schema="PostUser/xsd/token.xsd"
+				root="token"
+			>
+				<forward name="success" path="CheckIfAccessTokenPresent" />
+				<forward name="failure" path="ServerError" />
+				<forward name="parserError" path="ServerError" />
+			</pipe>
+			
+			<pipe 	
+				name="CheckIfAccessTokenPresent" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+				storeResultInSessionKey="dbDetails"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT EMAIL FROM ACCESSTOKENS WHERE TOKEN = ?">
+					<param name="email" xpathExpression="token"/>
+				</sender>
+					
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="CheckResult"/>
+			</pipe>
+			
+			<pipe 
+ 				name="CheckResult"
+				className="nl.nn.adapterframework.pipes.XmlIf"
+				xpathExpression="boolean(result/rowset/row[@number=0])" 
+			>
+				
+				<forward name="then" path="PutParametersInSessionKey" />
+				<forward name="else" path="NotAuthorised"/>
+			</pipe>				
+			
+			<pipe 
+				name="PutParametersInSessionKey" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
+			>
+				<param name="email" sessionKey="dbDetails" xpathExpression="*/*/*/field[@name='EMAIL']"/>
+				
+				<forward name="failure" path="ServerError" />
+				<forward name="success" path="GetUser" />
+			</pipe>	
+			
+			<pipe 	
+				name="GetUser" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				storeResultInSessionKey="theuser"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT * FROM USERS WHERE EMAIL = ?">
+					<param name="email" sessionKey="email"/>
+				</sender>
+					
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="OK"/>
+			</pipe>
+			
+		</pipeline>
+	</adapter>
+</ibis>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ibis>
+	<adapter name="AddUser" description="Creates a user in database" >
+	
+		<receiver 	className="nl.nn.adapterframework.receivers.GenericReceiver"
+					name="CreateUser">
+			<listener 
+	      	className="nl.nn.adapterframework.http.rest.ApiListener" 
+	      	uriPattern="users" 
+	      	method="POST" 
+	      	consumes="JSON"
+	      	produces="XML"
+	      />
+				
+		</receiver>
+		
+		<pipeline firstPipe="convert json to xml">
+		
+			<exits>
+				<exit path="Created" state="success" code="201" empty="true" />
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="convert json to xml"
+				className="nl.nn.adapterframework.pipes.JsonPipe"
+				storeResultInSessionKey="OriginalXML"
+			>
+
+				<forward name="success" path="validate incoming Xml" />
+			</pipe>
+			
+			<pipe 
+				name="validate incoming Xml"
+				className="nl.nn.adapterframework.pipes.XmlValidator"
+				schema="PostUser/xsd/PostUser.xsd"
+				root="user"
+			>
+				<forward name="success" path="CheckEmailInDb" />
+				<forward name="failure" path="ServerError" />
+				<forward name="parserError" path="ServerError" />
+			</pipe>
+			
+			<pipe 	
+				name="CheckEmailInDb" 
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT EMAIL FROM USERS WHERE EMAIL = LOWER(?)">
+					<param name="email" xpathExpression="*/email"/>
+				</sender>
+					
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="CheckIfEmailExists"/>
+			</pipe>
+			
+			<pipe
+				name="CheckIfEmailExists"
+				className="nl.nn.adapterframework.pipes.XmlIf"
+				xpathExpression="string-length(*/*/*/field[@name='EMAIL'])&gt;0"
+			>
+
+				<forward name="then" path="UpdateUser"/><!-- email exists, we'll update -->
+				<forward name="else" path="SaveUser"/><!-- if email doen't exist, we'll insert -->
+			</pipe>
+			
+			<pipe 	
+				name="UpdateUser"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="UPDATE USERS SET NAME=?, LASTNAME=?, INSTANCENAME=? WHERE EMAIL=?">
+					
+					<param name="name" xpathExpression="user/name" />
+					<param name="lastname" xpathExpression="user/lastname" />
+					<param name="instancename" xpathExpression="user/instancename" />
+					<param name="email" xpathExpression="user/email" />
+					
+				</sender>
+						
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="Created" />
+			</pipe>
+			
+			
+			<pipe 	
+				name="SaveUser"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="INSERT INTO USERS (NAME, LASTNAME, EMAIL,INSTANCENAME, PASSWORD ) VALUES (?, ?, ?, LOWER(?), null)">
+					
+					<param name="name" xpathExpression="user/name" />
+					<param name="lastname" xpathExpression="user/lastname" />
+					<param name="email" xpathExpression="user/email" />
+					<param name="instancename" xpathExpression="user/instancename" />
+				</sender>
+						
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="GetUID" />
+			</pipe>
+			
+			<pipe 
+				name="GetUID"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				storeResultInSessionKey="uid"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					queryType="select"
+					query="SELECT UID FROM USERS WHERE EMAIL = LOWER(?)">
+					<param name="email" xpathExpression="user/email"/>
+				</sender>
+					
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="createPassword"/>
+			</pipe>
+			
+			<pipe
+				name="createPassword"
+				className="nl.nn.adapterframework.pipes.UUIDGeneratorPipe"
+				storeResultInSessionKey="password"
+			>
+				<forward name="exception" path="ServerError" />
+				<forward name="succes" path="savePassword"/>
+			</pipe>
+			
+			<pipe 	
+				name="savePassword"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				getInputFromSessionKey="OriginalXML"
+			>
+				<sender
+					className="nl.nn.adapterframework.jdbc.FixedQuerySender"
+					jmsRealm="jdbc"
+					query="UPDATE USERS SET PASSWORD=? WHERE EMAIL=LOWER(?)">
+					
+					<param name="password" sessionKey="password" />
+					<param name="email" xpathExpression="user/email" />
+				</sender>
+						
+				<forward name="exception" path="ServerError" />
+				<forward name="success" path="PutParametersInSessionKey" />
+			</pipe>
+			
+			<pipe 
+				name="PutParametersInSessionKey" 
+				className="nl.nn.adapterframework.pipes.PutParametersInSession"
+			>
+				<param name="email" sessionKey="OriginalXML" xpathExpression="user/email"/>
+				<param name="name" sessionKey="OriginalXML" xpathExpression="user/name"/>
+				<param name="lastname" sessionKey="OriginalXML" xpathExpression="user/lastname"/>
+				<param name="instancename" sessionKey="OriginalXML" xpathExpression="user/instancename"/>
+				
+				<forward name="failure" path="ServerError" />
+				<forward name="success" path="CreateMail" />
+			</pipe>
+			
+			
+			<pipe
+				name="CreateMail"
+				className="nl.nn.adapterframework.pipes.XsltPipe"
+				styleSheetName="PostUser/xsl/mailToUser.xsl"
+				xslt2="true"
+				getInputFromFixedValue="&lt;dummy/&gt;"
+				>
+				<param name="email" sessionKey ="email"  />
+				<param name="name" sessionKey ="name" />
+				<param name="lastname" sessionKey ="lastname"  />
+				<param name="instancename" sessionKey ="instancename"  />
+				<param name="password" sessionKey ="password" />
+				<forward name="success" path="SendMail" />
+			</pipe>
+			
+			<pipe
+				name="SendMail"
+				className="nl.nn.adapterframework.pipes.GenericMessageSendingPipe"
+				>
+				<sender
+					className="nl.nn.adapterframework.senders.MailSender"
+					smtpHost="smtp.xs4all.nl"
+					smtpUserid="reindera"
+					smtpPassword="xsOsiris74"
+				/>
+				<forward name="success" path="Created" />
+			</pipe>
+			
+			
+		</pipeline>
+	</adapter>
+</ibis>

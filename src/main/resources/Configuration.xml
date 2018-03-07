@@ -3,6 +3,12 @@
 	<!ENTITY PostJson SYSTEM "ConfigurationPostJson.xml">
 	<!ENTITY PostIafTag SYSTEM "Configuration_PostIafTag.xml">
 	<!ENTITY DeleteIafTag SYSTEM "Configuration_DeleteIafTag.xml">
+	<!ENTITY Login SYSTEM "Configuration_Login.xml">
+	<!ENTITY Logout SYSTEM "Configuration_Logout.xml">
+	<!ENTITY Adduser SYSTEM "Configuration_Add_User.xml">
+	<!ENTITY GetMe SYSTEM "Configuration_GetMe.xml">
+	
+	
 ]>
 <configuration name="Ibis4Education">
 	<jmsRealms>
@@ -12,4 +18,8 @@
 	&PostJson;
 	&PostIafTag;
 	&DeleteIafTag;
+	&Login;
+	&Logout;
+	&Adduser;
+	&GetMe;
 </configuration>
